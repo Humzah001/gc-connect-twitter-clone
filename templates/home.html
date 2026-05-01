@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ app_title }} — Home</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-server-auth="1" data-after-login="/home">
+    <header class="top-bar">
+        <div>
+            <h1>{{ app_title }}</h1>
+            <p class="sub">@{{ user_info.username }} · {{ user_info.email }}</p>
+        </div>
+        <button type="button" id="sign-out" class="btn">Sign out</button>
+    </header>
+
+    <main class="page">
+        {% if flash_message %}
+        <p class="flash flash-{{ flash_kind }}">{{ flash_message }}</p>
+        {% endif %}
+
+        <section class="card">
+            <h2>New tweet</h2>
+            <form method="post" action="/add-tweet">
+                <label for="tweet-text">What is happening?</label>
+                <textarea id="tweet-text" name="text" rows="4" maxlength="{{ max_tweet_len }}" required placeholder="Max {{ max_tweet_len }} characters"></textarea>
+                <p class="hint">{{ max_tweet_len }} characters max.</p>
+                <button type="submit" class="btn primary">Tweet</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>Your tweets</h2>
+            {% if my_tweets|length == 0 %}
+            <p class="muted">No tweets yet.</p>
+            {% else %}
+            <ul class="tweet-list">
+                {% for t in my_tweets %}
+                <li class="tweet-item">
+                    <p class="tweet-body">{{ t.text }}</p>
+                    <p class="tweet-meta">{{ t.created_at }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </section>
+    </main>
+    <script type="module" src="/static/firebase-login.js"></script>
+</body>
+</html>

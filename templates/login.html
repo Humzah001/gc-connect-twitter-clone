@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ app_title }} — Login</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-server-auth="0" data-after-login="/home">
+    <header class="top-bar">
+        <h1>{{ app_title }}</h1>
+    </header>
+    <main class="page">
+        {% if flash_message %}
+        <p class="flash flash-{{ flash_kind }}">{{ flash_message }}</p>
+        {% endif %}
+
+        <div id="login-box">
+            <form id="firebase-guest-form" class="card" method="post" action="#">
+                <h2>Sign in</h2>
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" autocomplete="username" required>
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+                <div class="btn-row">
+                    <button type="button" id="login" class="btn primary">Log in</button>
+                    <button type="button" id="sign-up" class="btn">Sign up</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="sign-out-box" hidden>
+            <p class="card">You are signed in.</p>
+            <button type="button" id="sign-out" class="btn">Sign out</button>
+        </div>
+    </main>
+    <script type="module" src="/static/firebase-login.js"></script>
+</body>
+</html>

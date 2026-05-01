@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ app_title }} — Choose username</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-server-auth="1" data-after-login="/home">
+    <header class="top-bar">
+        <h1>{{ app_title }}</h1>
+        <p class="sub">First visit — pick a unique username</p>
+    </header>
+    <main class="page narrow">
+        {% if flash_message %}
+        <p class="flash flash-{{ flash_kind }}">{{ flash_message }}</p>
+        {% endif %}
+
+        <form class="card" method="post" action="/set-username">
+            <h2>Set your username</h2>
+            <p class="hint">This name must be unique. You can try again if it is taken.</p>
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" maxlength="64" required autocomplete="username">
+
+            <button type="submit" class="btn primary">Continue</button>
+        </form>
+
+        <div class="btn-row">
+            <button type="button" id="sign-out" class="btn">Sign out</button>
+        </div>
+    </main>
+    <script type="module" src="/static/firebase-login.js"></script>
+</body>
+</html>

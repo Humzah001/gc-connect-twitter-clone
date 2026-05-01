@@ -1,0 +1,153 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    background: #f4f6f8;
+    color: #1a1a1a;
+}
+
+.top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: #fff;
+    border-bottom: 1px solid #e1e8ed;
+}
+
+.top-bar h1 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.sub {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: #536471;
+}
+
+.page {
+    max-width: 640px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+}
+
+.page.narrow {
+    max-width: 420px;
+}
+
+.card {
+    background: #fff;
+    border: 1px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.card h2 {
+    margin-top: 0;
+    font-size: 1.1rem;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    margin: 0.75rem 0 0.35rem;
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 0.6rem 0.65rem;
+    border: 1px solid #cfd9de;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.btn-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.btn {
+    padding: 0.55rem 1rem;
+    border-radius: 999px;
+    border: 1px solid #cfd9de;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn.primary {
+    background: #1d9bf0;
+    border-color: #1d9bf0;
+    color: #fff;
+}
+
+.flash {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.flash-error {
+    background: #fee;
+    border: 1px solid #f88;
+    color: #800;
+}
+
+.flash-success {
+    background: #e8f8ee;
+    border: 1px solid #8c8;
+    color: #050;
+}
+
+.hint {
+    font-size: 0.85rem;
+    color: #536471;
+    margin: 0.35rem 0 0;
+}
+
+.muted {
+    color: #536471;
+}
+
+.tweet-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tweet-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e1e8ed;
+}
+
+.tweet-item:last-child {
+    border-bottom: none;
+}
+
+.tweet-body {
+    margin: 0 0 0.35rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.tweet-meta {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #536471;
+}
