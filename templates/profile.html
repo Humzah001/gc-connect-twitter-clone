@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+        {% if profile_user %}{{ app_title }} — @{{ profile_user.username }}{% else %}{{ app_title }} — Profile{% endif %}
+    </title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body data-server-auth="{% if user_token %}1{% else %}0{% endif %}" data-after-login="/home">
+    <header class="top-bar">
+        <div>
+            <h1>{{ app_title }}</h1>
+            <p class="sub">Profile</p>
+        </div>
+        <nav class="nav-links">
+            <a href="/home">Home</a>
+            <a href="/search">Search</a>
+            {% if user_token %}
+            <button type="button" id="sign-out" class="btn btn-small">Sign out</button>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="page">
+        {% if flash_message %}
+        <p class="flash flash-{{ flash_kind }}">{{ flash_message }}</p>
+        {% endif %}
+
+        {% if profile_user is none %}
+        <section class="card">
+            <p>User not found.</p>
+            <p><a href="/search">Try search</a></p>
+        </section>
+        {% else %}
+
+        <section class="card profile-head">
+            <div class="profile-avatar-row">
+                {% if profile_user.profile_image_url %}
+                <img class="avatar large" src="{{ profile_user.profile_image_url }}" alt="Profile picture">
+                {% else %}
+                <div class="avatar placeholder large" aria-hidden="true"></div>
+                {% endif %}
+                <div>
+                    <h2>@{{ profile_user.username }}</h2>
+                    <p class="muted">{{ profile_user.email }}</p>
+                </div>
+            </div>
+
+            {% if user_token and user_info and not is_own_profile %}
+            <div class="btn-row">
+                {% if is_following %}
+                <form method="post" action="/unfollow">
+                    <input type="hidden" name="username" value="{{ profile_user.username }}">
+                    <button type="submit" class="btn">Unfollow</button>
+                </form>
+                {% else %}
+                <form method="post" action="/follow">
+                    <input type="hidden" name="username" value="{{ profile_user.username }}">
+                    <button type="submit" class="btn primary">Follow</button>
+                </form>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% if is_own_profile %}
+            <div class="profile-upload">
+                <h3>Profile picture</h3>
+                <p class="hint">JPG or PNG only. Stored in Azure Blob Storage (Azurite container 3181143-images).</p>
+                <form method="post" action="/upload-profile-picture" enctype="multipart/form-data">
+                    <label for="photo">Choose image</label>
+                    <input id="photo" name="photo" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>
+                    <div class="btn-row">
+                        <button type="submit" class="btn primary">Upload</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
+        </section>
+
+        <section class="card">
+            <h3>Last 10 tweets</h3>
+            {% if profile_tweets|length == 0 %}
+            <p class="muted">No tweets yet.</p>
+            {% else %}
+            <ul class="tweet-list">
+                {% for t in profile_tweets %}
+                <li class="tweet-item">
+                    <p class="tweet-body">{{ t.text }}</p>
+                    <p class="tweet-meta">{{ t.created_at }}</p>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </section>
+
+        {% endif %}
+    </main>
+    {% if user_token %}
+    <script type="module" src="/static/firebase-login.js"></script>
+    {% endif %}
+</body>
+</html>

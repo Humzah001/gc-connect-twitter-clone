@@ -20,7 +20,7 @@
             <h2>Set your username</h2>
             <p class="hint">This name must be unique. You can try again if it is taken.</p>
             <label for="username">Username</label>
-            <input id="username" name="username" type="text" maxlength="64" required autocomplete="username">
+            <input id="username" name="username" type="text" maxlength="64" pattern="[A-Za-z0-9_]{1,64}" required autocomplete="username" title="Letters, numbers, and underscores only">
 
             <button type="submit" class="btn primary">Continue</button>
         </form>

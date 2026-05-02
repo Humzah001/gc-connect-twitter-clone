@@ -8,9 +8,20 @@
 </head>
 <body data-server-auth="1" data-after-login="/home">
     <header class="top-bar">
-        <div>
-            <h1>{{ app_title }}</h1>
-            <p class="sub">@{{ user_info.username }} · {{ user_info.email }}</p>
+        <div class="profile-avatar-row">
+            {% if user_info.profile_image_url %}
+            <img class="avatar" src="{{ user_info.profile_image_url }}" alt="">
+            {% else %}
+            <div class="avatar placeholder" aria-hidden="true"></div>
+            {% endif %}
+            <div>
+                <h1>{{ app_title }}</h1>
+                <p class="sub">@{{ user_info.username }} · {{ user_info.email }}</p>
+                <nav class="nav-links inline">
+                    <a href="/search">Search</a>
+                    <a href="/profile/{{ user_info.username }}">My profile</a>
+                </nav>
+            </div>
         </div>
         <button type="button" id="sign-out" class="btn">Sign out</button>
     </header>
