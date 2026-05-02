@@ -42,15 +42,24 @@
         </section>
 
         <section class="card">
-            <h2>Your tweets</h2>
-            {% if my_tweets|length == 0 %}
-            <p class="muted">No tweets yet.</p>
+            <h2>Timeline</h2>
+            <p class="hint">Latest 20 tweets from you and people you follow (newest first).</p>
+            {% if timeline_rows|length == 0 %}
+            <p class="muted">No tweets yet. Post something or follow other users.</p>
             {% else %}
             <ul class="tweet-list">
-                {% for t in my_tweets %}
+                {% for row in timeline_rows %}
                 <li class="tweet-item">
-                    <p class="tweet-body">{{ t.text }}</p>
-                    <p class="tweet-meta">{{ t.created_at }}</p>
+                    <p class="tweet-meta">
+                        <a href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
+                        {% if row.is_own %}
+                        <span class="tweet-actions-inline">
+                            <a href="/edit-tweet?tweet_id={{ row.tweet_id }}">Edit</a>
+                        </span>
+                        {% endif %}
+                    </p>
+                    <p class="tweet-body">{{ row.tweet.text }}</p>
+                    <p class="tweet-meta">{{ row.tweet.created_at }}</p>
                 </li>
                 {% endfor %}
             </ul>

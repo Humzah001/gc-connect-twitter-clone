@@ -9,6 +9,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from google.auth.transport import requests as google_requests
+from bson import ObjectId
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
@@ -97,10 +98,16 @@ FLASH_ERRORS = {
     "photo_missing": "Please choose an image file.",
     "photo_bad_type": "Profile pictures must be JPG or PNG.",
     "photo_upload_failed": "Upload failed. Check Azurite/Azure blob settings and credentials.",
+    "edit_denied": "You cannot edit that tweet.",
+    "edit_empty": "Tweet text cannot be empty.",
+    "edit_long": "Tweets must be 280 characters or fewer.",
+    "bio_long": "Bio must be 280 characters or fewer.",
 }
 
 FLASH_OK = {
     "photo_updated": "Profile picture updated.",
+    "tweet_updated": "Tweet updated.",
+    "bio_updated": "Bio saved.",
 }
 
 
@@ -172,11 +179,24 @@ def get_user(user_token):
             "email": user_token.get("email", ""),
             "username": None,
             "profile_image_url": None,
+            "bio": "",
         }
 
         user_collection.insert_one(new_user)
         user = user_collection.find_one({"user_id": user_id})
 
+    return user
+
+
+def ensure_bio_field(user):
+    if user is None:
+        return user
+    if "bio" not in user:
+        user_collection.update_one(
+            {"user_id": user["user_id"]},
+            {"$set": {"bio": ""}},
+        )
+        user = user_collection.find_one({"user_id": user["user_id"]})
     return user
 
 
@@ -249,6 +269,70 @@ def get_my_tweets(user_id):
     tweets = sort_tweets(tweets)
 
     return tweets
+
+
+def get_following_user_ids(follower_id):
+    out = []
+    for row in follow_collection.find({"follower_id": follower_id}):
+        fid = row.get("following_id")
+        if fid is None:
+            continue
+        seen = False
+        for x in out:
+            if x == fid:
+                seen = True
+                break
+        if not seen:
+            out.append(fid)
+    return out
+
+
+def get_timeline_rows(me_user_id, limit):
+    author_ids = [me_user_id]
+    for fid in get_following_user_ids(me_user_id):
+        dup = False
+        for a in author_ids:
+            if a == fid:
+                dup = True
+                break
+        if not dup:
+            author_ids.append(fid)
+
+    tweets = []
+    for t in tweet_collection.find({}):
+        uid = t.get("user_id")
+        include = False
+        for aid in author_ids:
+            if uid == aid:
+                include = True
+                break
+        if include:
+            tweets.append(t)
+
+    tweets = sort_tweets(tweets)
+
+    rows = []
+    i = 0
+    while i < len(tweets) and i < limit:
+        t = tweets[i]
+        author = user_collection.find_one({"user_id": t.get("user_id")})
+        uname = "unknown"
+        if author is not None and author.get("username"):
+            uname = str(author.get("username"))
+        tid = t.get("_id")
+        tweet_id_str = str(tid) if tid is not None else ""
+        own = t.get("user_id") == me_user_id
+        rows.append(
+            {
+                "tweet_id": tweet_id_str,
+                "tweet": t,
+                "author_username": uname,
+                "is_own": own,
+            }
+        )
+        i = i + 1
+
+    return rows
 
 
 def search_users_by_prefix(prefix):
@@ -405,6 +489,7 @@ async def home(request: Request):
 
     user = get_user(user_token)
     user = ensure_profile_image_field(user)
+    user = ensure_bio_field(user)
 
     if not has_username(user):
         return RedirectResponse(
@@ -413,7 +498,7 @@ async def home(request: Request):
         )
 
     flash_message, flash_kind = get_flash_message(request)
-    tweets = get_my_tweets(user_token["user_id"])
+    timeline_rows = get_timeline_rows(user_token["user_id"], 20)
 
     return templates.TemplateResponse(
         "home.html",
@@ -424,7 +509,7 @@ async def home(request: Request):
             "user_info": user,
             "flash_message": flash_message,
             "flash_kind": flash_kind,
-            "my_tweets": tweets,
+            "timeline_rows": timeline_rows,
             "max_tweet_len": MAX_TWEET_LEN,
         },
     )
@@ -484,10 +569,12 @@ async def profile_page(request: Request, username: str):
                 "is_following": False,
                 "flash_message": flash_message,
                 "flash_kind": flash_kind,
+                "max_tweet_len": MAX_TWEET_LEN,
             },
         )
 
     profile_user = ensure_profile_image_field(profile_user)
+    profile_user = ensure_bio_field(profile_user)
 
     all_tweets = get_my_tweets(profile_user["user_id"])
     profile_tweets = []
@@ -520,6 +607,7 @@ async def profile_page(request: Request, username: str):
             "is_following": following_flag,
             "flash_message": flash_message,
             "flash_kind": flash_kind,
+            "max_tweet_len": MAX_TWEET_LEN,
         },
     )
 
@@ -774,3 +862,155 @@ async def add_tweet(request: Request):
     tweet_collection.insert_one(tweet)
 
     return RedirectResponse(APP_HOME, status_code=status.HTTP_302_FOUND)
+
+
+@app.get("/edit-tweet", response_class=HTMLResponse)
+async def edit_tweet_page(request: Request):
+    id_token = request.cookies.get("token")
+    user_token = check_firebase_token(id_token)
+    if not user_token:
+        return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+    user = get_user(user_token)
+    if not has_username(user):
+        return RedirectResponse("/set-username", status_code=status.HTTP_302_FOUND)
+
+    tweet_id_raw = request.query_params.get("tweet_id", "").strip()
+    oid = None
+    try:
+        oid = ObjectId(tweet_id_raw)
+    except Exception:
+        oid = None
+
+    if oid is None:
+        return RedirectResponse(
+            add_query(APP_HOME, err="edit_denied"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    tweet = tweet_collection.find_one({"_id": oid})
+    if tweet is None:
+        return RedirectResponse(
+            add_query(APP_HOME, err="edit_denied"),
+            status_code=status.HTTP_302_FOUND,
+        )
+    if tweet.get("user_id") != user_token["user_id"]:
+        return RedirectResponse(
+            add_query(APP_HOME, err="edit_denied"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    flash_message, flash_kind = get_flash_message(request)
+    user = ensure_profile_image_field(user)
+    user = ensure_bio_field(user)
+
+    return templates.TemplateResponse(
+        "edit-tweet.html",
+        {
+            "request": request,
+            "app_title": APP_TITLE,
+            "user_token": user_token,
+            "user_info": user,
+            "tweet": tweet,
+            "tweet_id": tweet_id_raw,
+            "flash_message": flash_message,
+            "flash_kind": flash_kind,
+            "max_tweet_len": MAX_TWEET_LEN,
+        },
+    )
+
+
+@app.post("/edit-tweet", response_class=RedirectResponse)
+async def edit_tweet_save(request: Request):
+    id_token = request.cookies.get("token")
+    user_token = check_firebase_token(id_token)
+    if not user_token:
+        return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+    user = get_user(user_token)
+    if not has_username(user):
+        return RedirectResponse("/set-username", status_code=status.HTTP_302_FOUND)
+
+    form = await request.form()
+    tweet_id_raw = str(form.get("tweet_id", "")).strip()
+    oid = None
+    try:
+        oid = ObjectId(tweet_id_raw)
+    except Exception:
+        oid = None
+
+    if oid is None:
+        return RedirectResponse(
+            add_query(APP_HOME, err="edit_denied"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    tweet = tweet_collection.find_one({"_id": oid})
+    if tweet is None or tweet.get("user_id") != user_token["user_id"]:
+        return RedirectResponse(
+            add_query(APP_HOME, err="edit_denied"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    text = form.get("text", "")
+    text = str(text).strip()
+
+    if not text:
+        return RedirectResponse(
+            add_query("/edit-tweet", tweet_id=tweet_id_raw, err="edit_empty"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    if len(text) > MAX_TWEET_LEN:
+        return RedirectResponse(
+            add_query("/edit-tweet", tweet_id=tweet_id_raw, err="edit_long"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    tweet_collection.update_one(
+        {"_id": oid, "user_id": user_token["user_id"]},
+        {"$set": {"text": text}},
+    )
+
+    return RedirectResponse(
+        add_query(APP_HOME, ok="tweet_updated"),
+        status_code=status.HTTP_302_FOUND,
+    )
+
+
+@app.post("/save-bio", response_class=RedirectResponse)
+async def save_bio(request: Request):
+    id_token = request.cookies.get("token")
+    user_token = check_firebase_token(id_token)
+    if not user_token:
+        return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+
+    viewer = get_user(user_token)
+    if not has_username(viewer):
+        return RedirectResponse("/set-username", status_code=status.HTTP_302_FOUND)
+
+    form = await request.form()
+    raw_bio = form.get("bio")
+    if raw_bio is None:
+        raw_bio = ""
+    bio = str(raw_bio).strip()
+
+    if len(bio) > MAX_TWEET_LEN:
+        handle = str(viewer.get("username", "")).strip()
+        dest = "/profile/" + quote(handle, safe="")
+        return RedirectResponse(
+            add_query(dest, err="bio_long"),
+            status_code=status.HTTP_302_FOUND,
+        )
+
+    user_collection.update_one(
+        {"user_id": user_token["user_id"]},
+        {"$set": {"bio": bio}},
+    )
+
+    handle = str(viewer.get("username", "")).strip()
+    dest = "/profile/" + quote(handle, safe="")
+    return RedirectResponse(
+        add_query(dest, ok="bio_updated"),
+        status_code=status.HTTP_302_FOUND,
+    )

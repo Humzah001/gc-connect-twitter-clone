@@ -246,3 +246,34 @@ input[type="file"] {
     width: 100%;
     margin-bottom: 0.5rem;
 }
+
+.bio-text {
+    margin: 0.5rem 0 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.profile-bio {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e1e8ed;
+}
+
+.profile-bio h3 {
+    margin-top: 0;
+    font-size: 1rem;
+}
+
+.tweet-actions-inline {
+    margin-left: 0.35rem;
+}
+
+.tweet-actions-inline a {
+    font-weight: 600;
+    color: #1d9bf0;
+    text-decoration: none;
+}
+
+.tweet-actions-inline a:hover {
+    text-decoration: underline;
+}

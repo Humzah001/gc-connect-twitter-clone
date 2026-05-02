@@ -45,8 +45,28 @@
                 <div>
                     <h2>@{{ profile_user.username }}</h2>
                     <p class="muted">{{ profile_user.email }}</p>
+                    {% if not is_own_profile and profile_user.bio %}
+                    <p class="bio-text">{{ profile_user.bio }}</p>
+                    {% endif %}
+                    {% if is_own_profile and not profile_user.bio %}
+                    <p class="muted">No bio yet. Add one below.</p>
+                    {% endif %}
                 </div>
             </div>
+
+            {% if is_own_profile %}
+            <div class="profile-bio">
+                <h3>Bio</h3>
+                <p class="hint">Up to {{ max_tweet_len }} characters (shown on your profile).</p>
+                <form method="post" action="/save-bio">
+                    <label for="bio-field">About you</label>
+                    <textarea id="bio-field" name="bio" rows="4" maxlength="{{ max_tweet_len }}" placeholder="Optional short bio">{{ profile_user.bio or '' }}</textarea>
+                    <div class="btn-row">
+                        <button type="submit" class="btn primary">Save bio</button>
+                    </div>
+                </form>
+            </div>
+            {% endif %}
 
             {% if user_token and user_info and not is_own_profile %}
             <div class="btn-row">
@@ -88,7 +108,12 @@
                 {% for t in profile_tweets %}
                 <li class="tweet-item">
                     <p class="tweet-body">{{ t.text }}</p>
-                    <p class="tweet-meta">{{ t.created_at }}</p>
+                    <p class="tweet-meta">
+                        {{ t.created_at }}
+                        {% if is_own_profile %}
+                        <span class="tweet-actions-inline"> · <a href="/edit-tweet?tweet_id={{ t._id }}">Edit</a></span>
+                        {% endif %}
+                    </p>
                 </li>
                 {% endfor %}
             </ul>
