@@ -232,6 +232,15 @@ textarea {
     border-bottom: none;
 }
 
+.user-results-rich > li {
+    padding: 0;
+    border-bottom: none;
+}
+
+.user-results-rich > li + li {
+    border-top: 1px solid #e1e8ed;
+}
+
 .user-results a {
     font-weight: 600;
     color: #1d9bf0;
@@ -333,4 +342,222 @@ input[type="file"] {
     display: block;
     margin: 0.5rem 0 1rem;
     font-weight: 500;
+}
+
+/* ----- Group 5: layout & polish ----- */
+.app-body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f0f4f8 0%, #eef1f6 40%, #e8eef4 100%);
+    color: #0f1419;
+}
+
+.app-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 0 rgba(15, 20, 25, 0.08);
+}
+
+.app-header.login-header.centered {
+    justify-content: center;
+}
+
+.brand-mark {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0f1419;
+}
+
+.card-title {
+    margin: 0 0 0.65rem;
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.card-title.small {
+    font-size: 1rem;
+}
+
+.card-compose textarea {
+    min-height: 88px;
+}
+
+.page-feed {
+    max-width: 600px;
+}
+
+.card {
+    box-shadow: 0 1px 3px rgba(15, 20, 25, 0.06);
+}
+
+.empty-hint {
+    margin-bottom: 0;
+}
+
+.retweet-row {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.35rem;
+}
+
+.avatar.retweet-mini-avatar {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.retweet-banner {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #536471;
+}
+
+.retweet-banner strong {
+    color: #0f1419;
+}
+
+.retweet-icon {
+    color: #536471;
+    margin-right: 0.15rem;
+}
+
+.tweet-shell {
+    display: flex;
+    gap: 0.65rem;
+    align-items: flex-start;
+}
+
+.tweet-avatar-cell {
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.avatar.tweet-avatar {
+    width: 42px;
+    height: 42px;
+}
+
+.tweet-body-cell {
+    flex: 1;
+    min-width: 0;
+}
+
+.tweet-header-line {
+    margin-bottom: 0.25rem;
+}
+
+.tweet-author-link {
+    font-weight: 700;
+    color: #0f1419;
+    text-decoration: none;
+}
+
+.tweet-author-link:hover {
+    text-decoration: underline;
+}
+
+.tweet-dot {
+    margin: 0 0.2rem;
+    color: #536471;
+    font-weight: bold;
+}
+
+.tweet-time {
+    font-size: 0.82rem;
+}
+
+.tweet-meta-row {
+    margin-bottom: 0;
+}
+
+.tweet-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem 1rem;
+    margin-top: 0.5rem;
+}
+
+.tweet-action-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #536471;
+}
+
+.tweet-action-btn:hover {
+    color: #1d9bf0;
+}
+
+.tweet-action-btn.danger:hover {
+    color: #c00;
+}
+
+.tweet-action-btn:focus-visible {
+    outline: 2px solid #1d9bf0;
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+a.link-a.tweet-action-btn {
+    text-decoration: none;
+}
+
+.inline-form .tweet-action-btn {
+    font: inherit;
+}
+
+.tweet-action-done {
+    font-size: 0.85rem;
+}
+
+.profile-name {
+    margin: 0 0 0.35rem;
+    font-size: 1.35rem;
+}
+
+.profile-hero {
+    align-items: flex-start;
+}
+
+.user-results-rich {
+    margin: 0;
+}
+
+.user-hit-row {
+    padding: 0;
+    border: none;
+}
+
+.user-hit-link {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.65rem 0;
+    font-weight: 600;
+    color: #1d9bf0;
+    text-decoration: none;
+}
+
+.user-hit-link:hover span {
+    text-decoration: underline;
+}
+
+.user-hit-avatar {
+    width: 38px;
+    height: 38px;
+}
+
+a:focus-visible,
+.btn:focus-visible,
+textarea:focus-visible,
+input:focus-visible {
+    outline: 2px solid #8ec5fc;
+    outline-offset: 1px;
 }

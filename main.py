@@ -364,6 +364,13 @@ def get_author_username(uid):
     return str(name)
 
 
+def get_profile_image_url_for_user_id(uid):
+    u = user_collection.find_one({"user_id": uid})
+    if u is None:
+        return None
+    return u.get("profile_image_url")
+
+
 def get_timeline_rows(me_user_id, limit):
     author_ids = [me_user_id]
     for fid in get_following_user_ids(me_user_id):
@@ -386,6 +393,7 @@ def get_timeline_rows(me_user_id, limit):
                 "author_username": get_author_username(uid),
                 "sort_time": t.get("created_at", datetime.min),
                 "retweeter_username": None,
+                "retweeter_id": None,
             }
         )
 
@@ -411,6 +419,7 @@ def get_timeline_rows(me_user_id, limit):
                 "author_username": get_author_username(ouid),
                 "sort_time": r.get("created_at", datetime.min),
                 "retweeter_username": rtw_name,
+                "retweeter_id": rt_uid,
             }
         )
 
@@ -430,12 +439,19 @@ def get_timeline_rows(me_user_id, limit):
         if oid is not None:
             already_rt = user_has_retweeted(me_user_id, oid)
         own_tweet = tw.get("user_id") == me_user_id
+        author_avatar = get_profile_image_url_for_user_id(tw.get("user_id"))
+        retweeter_avatar = None
+        rtw_id_meta = e.get("retweeter_id")
+        if rtw_id_meta is not None:
+            retweeter_avatar = get_profile_image_url_for_user_id(rtw_id_meta)
         rows.append(
             {
                 "kind": e.get("kind", "tweet"),
                 "tweet_id": e["tweet_id"],
                 "tweet": tw,
                 "author_username": e["author_username"],
+                "author_avatar_url": author_avatar,
+                "retweeter_avatar_url": retweeter_avatar,
                 "is_own": own_tweet,
                 "retweeter_username": e.get("retweeter_username"),
                 "already_retweeted": already_rt,
@@ -460,6 +476,7 @@ def get_profile_feed_rows(profile_user_id, limit):
                 "author_username": get_author_username(profile_user_id),
                 "sort_time": t.get("created_at", datetime.min),
                 "retweeter_username": None,
+                "retweeter_id": None,
             }
         )
 
@@ -482,6 +499,7 @@ def get_profile_feed_rows(profile_user_id, limit):
                 "author_username": get_author_username(ouid),
                 "sort_time": r.get("created_at", datetime.min),
                 "retweeter_username": uname,
+                "retweeter_id": profile_user_id,
             }
         )
 
@@ -491,12 +509,21 @@ def get_profile_feed_rows(profile_user_id, limit):
     j = 0
     while j < len(entries) and j < limit:
         e = entries[j]
+        tw = e["tweet"]
+        author_avatar = get_profile_image_url_for_user_id(tw.get("user_id"))
+        retweeter_avatar = None
+        if e.get("retweeter_id") is not None:
+            retweeter_avatar = get_profile_image_url_for_user_id(
+                e["retweeter_id"]
+            )
         out.append(
             {
                 "kind": e.get("kind", "tweet"),
                 "tweet_id": e["tweet_id"],
-                "tweet": e["tweet"],
+                "tweet": tw,
                 "author_username": e["author_username"],
+                "author_avatar_url": author_avatar,
+                "retweeter_avatar_url": retweeter_avatar,
                 "retweeter_username": e.get("retweeter_username"),
             }
         )
@@ -539,9 +566,12 @@ def search_tweets_by_prefix(prefix):
         if t.lower().startswith(prefix):
             author = user_collection.find_one({"user_id": tweet.get("user_id")})
             handle = "unknown"
-            if author is not None and author.get("username"):
-                handle = str(author.get("username"))
-            row = {"tweet": tweet, "author_username": handle}
+            avatar_u = None
+            if author is not None:
+                avatar_u = author.get("profile_image_url")
+                if author.get("username"):
+                    handle = str(author.get("username"))
+            row = {"tweet": tweet, "author_username": handle, "author_avatar_url": avatar_u}
             results.append(row)
 
     return results

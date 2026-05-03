@@ -6,8 +6,8 @@
     <title>{{ app_title }} Home</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body data-server-auth="1" data-after-login="/home">
-    <header class="top-bar">
+<body class="app-body" data-server-auth="1" data-after-login="/home">
+    <header class="top-bar app-header">
         <div class="profile-avatar-row">
             {% if user_info.profile_image_url %}
             <img class="avatar" src="{{ user_info.profile_image_url }}" alt="">
@@ -15,24 +15,25 @@
             <div class="avatar placeholder" aria-hidden="true"></div>
             {% endif %}
             <div>
-                <h1>{{ app_title }}</h1>
+                <p class="brand-mark">{{ app_title }}</p>
                 <p class="sub">@{{ user_info.username }} · {{ user_info.email }}</p>
-                <nav class="nav-links inline">
+                <nav class="nav-links inline" aria-label="Main">
+                    <a href="/home">Home</a>
                     <a href="/search">Search</a>
-                    <a href="/profile/{{ user_info.username }}">My profile</a>
+                    <a href="/profile/{{ user_info.username }}">Profile</a>
                 </nav>
             </div>
         </div>
         <button type="button" id="sign-out" class="btn">Sign out</button>
     </header>
 
-    <main class="page">
+    <main class="page page-feed">
         {% if flash_message %}
-        <p class="flash flash-{{ flash_kind }}">{{ flash_message }}</p>
+        <p class="flash flash-{{ flash_kind }}" role="alert">{{ flash_message }}</p>
         {% endif %}
 
-        <section class="card">
-            <h2>New tweet</h2>
+        <section class="card card-compose">
+            <h2 class="card-title">Compose</h2>
             <form method="post" action="/add-tweet" enctype="multipart/form-data">
                 <label for="tweet-text">What is happening?</label>
                 <textarea id="tweet-text" name="text" rows="4" maxlength="{{ max_tweet_len }}" required placeholder="Max {{ max_tweet_len }} characters"></textarea>
@@ -46,40 +47,61 @@
         </section>
 
         <section class="card">
-            <h2>Timeline</h2>
-            <p class="hint">Latest 20 posts: tweets from you and people you follow, plus retweets (newest first).</p>
+            <h2 class="card-title">Timeline</h2>
+            <p class="hint">Latest 20 posts from you & people you follow, including retweets. Newest first.</p>
             {% if timeline_rows|length == 0 %}
-            <p class="muted">No tweets yet. Post something or follow other users.</p>
+            <p class="muted empty-hint">No posts yet. Write something above or search for users to follow.</p>
             {% else %}
             <ul class="tweet-list">
                 {% for row in timeline_rows %}
                 <li class="tweet-item">
                     {% if row.kind == "retweet" %}
-                    <p class="retweet-banner">🔁 Retweeted by @{{ row.retweeter_username }}</p>
-                    {% endif %}
-                    <div class="tweet-meta-row">
-                        <a href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
-                        {% if not row.already_retweeted %}
-                        <form class="inline-form" method="post" action="/retweet">
-                            <input type="hidden" name="original_tweet_id" value="{{ row.tweet_id }}">
-                            <button type="submit" class="linkish">Retweet</button>
-                        </form>
+                    <div class="retweet-row">
+                        {% if row.retweeter_avatar_url %}
+                        <img class="avatar retweet-mini-avatar" src="{{ row.retweeter_avatar_url }}" alt="">
+                        {% else %}
+                        <div class="avatar retweet-mini-avatar placeholder" aria-hidden="true"></div>
                         {% endif %}
-                        {% if row.is_own %}
-                        <span class="tweet-actions-inline">
-                            <a href="/edit-tweet?tweet_id={{ row.tweet_id }}">Edit</a>
-                        </span>
-                        <form class="inline-form" method="post" action="/delete-tweet" onsubmit="return confirm('Delete this tweet?');">
-                            <input type="hidden" name="tweet_id" value="{{ row.tweet_id }}">
-                            <button type="submit" class="linkish danger">Delete</button>
-                        </form>
-                        {% endif %}
+                        <p class="retweet-banner"><span class="retweet-icon">↻</span> <strong>@{{ row.retweeter_username }}</strong> retweeted</p>
                     </div>
-                    <p class="tweet-body">{{ row.tweet.text }}</p>
-                    {% if row.tweet.image_url %}
-                    <img class="tweet-img" src="{{ row.tweet.image_url }}" alt="">
                     {% endif %}
-                    <p class="tweet-meta">{{ row.tweet.created_at }}</p>
+                    <div class="tweet-shell">
+                        <a href="/profile/{{ row.author_username }}" class="tweet-avatar-cell" aria-label="@{{ row.author_username }} profile">
+                            {% if row.author_avatar_url %}
+                            <img class="avatar tweet-avatar" src="{{ row.author_avatar_url }}" alt="">
+                            {% else %}
+                            <div class="avatar tweet-avatar placeholder" aria-hidden="true"></div>
+                            {% endif %}
+                        </a>
+                        <div class="tweet-body-cell">
+                            <div class="tweet-meta-row tweet-header-line">
+                                <a class="tweet-author-link" href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
+                                <span class="tweet-dot">·</span>
+                                <span class="tweet-time muted">{{ row.tweet.created_at }}</span>
+                            </div>
+                            <p class="tweet-body">{{ row.tweet.text }}</p>
+                            {% if row.tweet.image_url %}
+                            <img class="tweet-img" src="{{ row.tweet.image_url }}" alt="">
+                            {% endif %}
+                            <div class="tweet-actions">
+                                {% if not row.already_retweeted %}
+                                <form class="inline-form" method="post" action="/retweet">
+                                    <input type="hidden" name="original_tweet_id" value="{{ row.tweet_id }}">
+                                    <button type="submit" class="tweet-action-btn">Retweet</button>
+                                </form>
+                                {% else %}
+                                <span class="muted tweet-action-done">Retweeted</span>
+                                {% endif %}
+                                {% if row.is_own %}
+                                <a class="tweet-action-btn link-a" href="/edit-tweet?tweet_id={{ row.tweet_id }}">Edit</a>
+                                <form class="inline-form" method="post" action="/delete-tweet" onsubmit="return confirm('Delete this tweet?');">
+                                    <input type="hidden" name="tweet_id" value="{{ row.tweet_id }}">
+                                    <button type="submit" class="tweet-action-btn danger">Delete</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>

@@ -3,16 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ app_title }} — Search</title>
+    <title>{{ app_title }} - Search</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body data-server-auth="{% if user_token %}1{% else %}0{% endif %}" data-after-login="/home">
-    <header class="top-bar">
+<body class="app-body" data-server-auth="{% if user_token %}1{% else %}0{% endif %}" data-after-login="/home">
+    <header class="top-bar app-header">
         <div>
-            <h1>{{ app_title }}</h1>
-            <p class="sub">Search users and tweets (prefix match)</p>
+            <p class="brand-mark">{{ app_title }}</p>
+            <p class="sub">Search</p>
         </div>
-        <nav class="nav-links">
+        <nav class="nav-links" aria-label="Main">
             <a href="/home">Home</a>
             <a href="/search">Search</a>
             {% if user_token %}
@@ -21,14 +21,14 @@
         </nav>
     </header>
 
-    <main class="page">
+    <main class="page page-feed">
         {% if flash_message %}
-        <p class="flash flash-{{ flash_kind }}">{{ flash_message }}</p>
+        <p class="flash flash-{{ flash_kind }}" role="alert">{{ flash_message }}</p>
         {% endif %}
 
         <section class="card">
-            <h2>Search</h2>
-            <p class="hint">Usernames and tweet text are matched from the <strong>start</strong> only.</p>
+            <h2 class="card-title">Search</h2>
+            <p class="hint">Usernames and tweet text match from the <strong>start</strong> only.</p>
             <form method="get" action="/search">
                 <label for="q_user">Username begins with</label>
                 <input id="q_user" name="q_user" type="text" value="{{ q_user }}" placeholder="e.g. ali" autocomplete="off">
@@ -44,16 +44,23 @@
         </section>
 
         <section class="card">
-            <h2>Matching users</h2>
+            <h2 class="card-title">Users</h2>
             {% if q_user == "" %}
-            <p class="muted">Enter text above to search usernames.</p>
+            <p class="muted">Enter a prefix to search usernames.</p>
             {% elif user_hits|length == 0 %}
             <p class="muted">No users found.</p>
             {% else %}
-            <ul class="user-results">
+            <ul class="user-results user-results-rich">
                 {% for u in user_hits %}
-                <li>
-                    <a href="/profile/{{ u.username }}">@{{ u.username }}</a>
+                <li class="user-hit-row">
+                    <a href="/profile/{{ u.username }}" class="user-hit-link">
+                        {% if u.profile_image_url %}
+                        <img class="avatar user-hit-avatar" src="{{ u.profile_image_url }}" alt="">
+                        {% else %}
+                        <div class="avatar user-hit-avatar placeholder" aria-hidden="true"></div>
+                        {% endif %}
+                        <span>@{{ u.username }}</span>
+                    </a>
                 </li>
                 {% endfor %}
             </ul>
@@ -61,23 +68,35 @@
         </section>
 
         <section class="card">
-            <h2>Matching tweets</h2>
+            <h2 class="card-title">Tweets</h2>
             {% if q_tweet == "" %}
-            <p class="muted">Enter text above to search tweets.</p>
+            <p class="muted">Enter text to match the start of tweets.</p>
             {% elif tweet_hits|length == 0 %}
             <p class="muted">No tweets found.</p>
             {% else %}
             <ul class="tweet-list">
                 {% for row in tweet_hits %}
                 <li class="tweet-item">
-                    <p class="tweet-meta">
-                        <a href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
-                    </p>
-                    <p class="tweet-body">{{ row.tweet.text }}</p>
-                    {% if row.tweet.image_url %}
-                    <img class="tweet-img" src="{{ row.tweet.image_url }}" alt="">
-                    {% endif %}
-                    <p class="tweet-meta">{{ row.tweet.created_at }}</p>
+                    <div class="tweet-shell">
+                        <a href="/profile/{{ row.author_username }}" class="tweet-avatar-cell">
+                            {% if row.author_avatar_url %}
+                            <img class="avatar tweet-avatar" src="{{ row.author_avatar_url }}" alt="">
+                            {% else %}
+                            <div class="avatar tweet-avatar placeholder" aria-hidden="true"></div>
+                            {% endif %}
+                        </a>
+                        <div class="tweet-body-cell">
+                            <div class="tweet-header-line">
+                                <a class="tweet-author-link" href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
+                                <span class="tweet-dot">·</span>
+                                <span class="muted tweet-time">{{ row.tweet.created_at }}</span>
+                            </div>
+                            <p class="tweet-body">{{ row.tweet.text }}</p>
+                            {% if row.tweet.image_url %}
+                            <img class="tweet-img" src="{{ row.tweet.image_url }}" alt="">
+                            {% endif %}
+                        </div>
+                    </div>
                 </li>
                 {% endfor %}
             </ul>

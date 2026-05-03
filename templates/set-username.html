@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ app_title }} — Choose username</title>
+    <title>{{ app_title }} - Choose username</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body data-server-auth="1" data-after-login="/home">
-    <header class="top-bar">
-        <h1>{{ app_title }}</h1>
-        <p class="sub">First visit — pick a unique username</p>
+<body class="app-body" data-server-auth="1" data-after-login="/home">
+    <header class="top-bar app-header">
+        <p class="brand-mark">{{ app_title }}</p>
+        <p class="sub">First visit pick a unique username</p>
     </header>
     <main class="page narrow">
         {% if flash_message %}
