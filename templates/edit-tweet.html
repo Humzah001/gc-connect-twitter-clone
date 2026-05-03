@@ -24,11 +24,23 @@
         {% endif %}
 
         <section class="card">
-            <form method="post" action="/edit-tweet">
+            <form method="post" action="/edit-tweet" enctype="multipart/form-data">
                 <input type="hidden" name="tweet_id" value="{{ tweet_id }}">
                 <label for="tweet-text">Tweet text</label>
                 <textarea id="tweet-text" name="text" rows="5" maxlength="{{ max_tweet_len }}" required>{{ tweet.text }}</textarea>
                 <p class="hint">{{ max_tweet_len }} characters max.</p>
+
+                {% if tweet.image_url %}
+                <p class="hint">Current image:</p>
+                <img class="tweet-img tweet-img-preview" src="{{ tweet.image_url }}" alt="">
+                <label class="chk-label">
+                    <input type="checkbox" name="remove_image" value="on"> Remove image
+                </label>
+                {% endif %}
+
+                <label for="tweet-image">New image (JPG or PNG, optional)</label>
+                <input id="tweet-image" name="tweet_image" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
                 <div class="btn-row">
                     <button type="submit" class="btn primary">Save</button>
                     <a class="btn" href="/home">Cancel</a>

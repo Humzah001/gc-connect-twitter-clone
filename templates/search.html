@@ -74,6 +74,9 @@
                         <a href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
                     </p>
                     <p class="tweet-body">{{ row.tweet.text }}</p>
+                    {% if row.tweet.image_url %}
+                    <img class="tweet-img" src="{{ row.tweet.image_url }}" alt="">
+                    {% endif %}
                     <p class="tweet-meta">{{ row.tweet.created_at }}</p>
                 </li>
                 {% endfor %}

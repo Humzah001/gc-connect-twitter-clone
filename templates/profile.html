@@ -100,20 +100,40 @@
         </section>
 
         <section class="card">
-            <h3>Last 10 tweets</h3>
-            {% if profile_tweets|length == 0 %}
-            <p class="muted">No tweets yet.</p>
+            <h3>Last 10 on this profile</h3>
+            <p class="hint">Original tweets and retweets (newest first).</p>
+            {% if profile_feed|length == 0 %}
+            <p class="muted">Nothing to show yet.</p>
             {% else %}
             <ul class="tweet-list">
-                {% for t in profile_tweets %}
+                {% for row in profile_feed %}
                 <li class="tweet-item">
-                    <p class="tweet-body">{{ t.text }}</p>
-                    <p class="tweet-meta">
-                        {{ t.created_at }}
-                        {% if is_own_profile %}
-                        <span class="tweet-actions-inline"> · <a href="/edit-tweet?tweet_id={{ t._id }}">Edit</a></span>
+                    {% if row.kind == "retweet" %}
+                    <p class="retweet-banner">🔁 Retweeted by @{{ row.retweeter_username }}</p>
+                    {% endif %}
+                    <div class="tweet-meta-row">
+                        <a href="/profile/{{ row.author_username }}">@{{ row.author_username }}</a>
+                        {% if user_token and user_info and not row.already_retweeted %}
+                        <form class="inline-form" method="post" action="/retweet">
+                            <input type="hidden" name="original_tweet_id" value="{{ row.tweet_id }}">
+                            <button type="submit" class="linkish">Retweet</button>
+                        </form>
                         {% endif %}
-                    </p>
+                    </div>
+                    <p class="tweet-body">{{ row.tweet.text }}</p>
+                    {% if row.tweet.image_url %}
+                    <img class="tweet-img" src="{{ row.tweet.image_url }}" alt="">
+                    {% endif %}
+                    <p class="tweet-meta">{{ row.tweet.created_at }}</p>
+                    {% if is_own_profile and row.is_own_original %}
+                    <div class="tweet-meta-row">
+                        <a href="/edit-tweet?tweet_id={{ row.tweet_id }}">Edit</a>
+                        <form class="inline-form" method="post" action="/delete-tweet" onsubmit="return confirm('Delete this tweet?');">
+                            <input type="hidden" name="tweet_id" value="{{ row.tweet_id }}">
+                            <button type="submit" class="linkish danger">Delete</button>
+                        </form>
+                    </div>
+                    {% endif %}
                 </li>
                 {% endfor %}
             </ul>
