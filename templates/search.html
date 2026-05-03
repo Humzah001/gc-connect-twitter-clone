@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ app_title }} - Search</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=gc-red-2">
 </head>
 <body class="app-body" data-server-auth="{% if user_token %}1{% else %}0{% endif %}" data-after-login="/home">
     <header class="top-bar app-header">
@@ -28,28 +28,36 @@
 
         <section class="card">
             <h2 class="card-title">Search</h2>
-            <p class="hint">Usernames and tweet text match from the <strong>start</strong> only.</p>
+            <p class="hint">Usernames and tweet text match from the <strong>start</strong> only. Use the button under each field to search only that category.</p>
             <form method="get" action="/search">
                 <label for="q_user">Username begins with</label>
                 <input id="q_user" name="q_user" type="text" value="{{ q_user }}" placeholder="e.g. ali" autocomplete="off">
+                <div class="btn-row">
+                    <button type="submit" name="search" value="users" class="btn primary">Search users</button>
+                </div>
 
                 <label for="q_tweet">Tweet begins with</label>
                 <input id="q_tweet" name="q_tweet" type="text" value="{{ q_tweet }}" placeholder="e.g. Hello" autocomplete="off">
-
                 <div class="btn-row">
-                    <button type="submit" class="btn primary">Search</button>
+                    <button type="submit" name="search" value="tweets" class="btn primary">Search tweets</button>
                     <a class="btn" href="/search">Clear</a>
                 </div>
             </form>
         </section>
 
+        {% if search_mode != "tweets" %}
         <section class="card">
             <h2 class="card-title">Users</h2>
-            {% if q_user == "" %}
-            <p class="muted">Enter a prefix to search usernames.</p>
+            {% if search_mode == "users" and q_user == "" and user_hits|length == 0 %}
+            <p class="muted">No registered users yet.</p>
+            {% elif q_user == "" and search_mode != "users" %}
+            <p class="muted">Enter a prefix to search usernames, or use <strong>Search users</strong> with an empty field to list everyone.</p>
             {% elif user_hits|length == 0 %}
             <p class="muted">No users found.</p>
             {% else %}
+            {% if search_mode == "users" and q_user == "" %}
+            <p class="hint">Showing all registered users (sorted by username).</p>
+            {% endif %}
             <ul class="user-results user-results-rich">
                 {% for u in user_hits %}
                 <li class="user-hit-row">
@@ -66,7 +74,9 @@
             </ul>
             {% endif %}
         </section>
+        {% endif %}
 
+        {% if search_mode != "users" %}
         <section class="card">
             <h2 class="card-title">Tweets</h2>
             {% if q_tweet == "" %}
@@ -102,6 +112,7 @@
             </ul>
             {% endif %}
         </section>
+        {% endif %}
     </main>
     {% if user_token %}
     <script type="module" src="/static/firebase-login.js"></script>

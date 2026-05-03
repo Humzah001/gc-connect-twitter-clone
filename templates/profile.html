@@ -6,7 +6,7 @@
     <title>
         {% if profile_user %}{{ app_title }} - @{{ profile_user.username }}{% else %}{{ app_title }} - Profile{% endif %}
     </title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css?v=gc-red-2">
 </head>
 <body class="app-body" data-server-auth="{% if user_token %}1{% else %}0{% endif %}" data-after-login="/home">
     <header class="top-bar app-header">

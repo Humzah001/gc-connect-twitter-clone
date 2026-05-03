@@ -14,7 +14,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 
-APP_TITLE = "Twitter"
+APP_TITLE = "GC Connect"
 APP_HOME = "/home"
 MONGO_DB = "A2-3181143"
 MAX_TWEET_LEN = 280
@@ -532,10 +532,10 @@ def get_profile_feed_rows(profile_user_id, limit):
     return out
 
 
-def search_users_by_prefix(prefix):
+def search_users_by_prefix(prefix, *, list_all_when_empty=False):
     prefix = prefix.strip().lower()
     results = []
-    if prefix == "":
+    if prefix == "" and not list_all_when_empty:
         return results
 
     for u in user_collection.find({}):
@@ -546,9 +546,10 @@ def search_users_by_prefix(prefix):
         if len(n) == 0:
             continue
         lower = n.lower()
-        if lower.startswith(prefix):
+        if prefix == "" or lower.startswith(prefix):
             results.append(u)
 
+    results.sort(key=lambda x: str(x.get("username") or "").lower())
     return results
 
 
@@ -723,9 +724,19 @@ async def search_page(request: Request):
 
     q_user = request.query_params.get("q_user", "").strip()
     q_tweet = request.query_params.get("q_tweet", "").strip()
+    search_mode = request.query_params.get("search")
+    if search_mode not in ("users", "tweets"):
+        search_mode = None
 
-    user_hits = search_users_by_prefix(q_user)
-    tweet_hits = search_tweets_by_prefix(q_tweet)
+    if search_mode == "users":
+        user_hits = search_users_by_prefix(q_user, list_all_when_empty=True)
+        tweet_hits = []
+    elif search_mode == "tweets":
+        user_hits = []
+        tweet_hits = search_tweets_by_prefix(q_tweet)
+    else:
+        user_hits = search_users_by_prefix(q_user)
+        tweet_hits = search_tweets_by_prefix(q_tweet)
 
     flash_message, flash_kind = get_flash_message(request)
 
@@ -738,6 +749,7 @@ async def search_page(request: Request):
             "user_info": viewer,
             "q_user": q_user,
             "q_tweet": q_tweet,
+            "search_mode": search_mode,
             "user_hits": user_hits,
             "tweet_hits": tweet_hits,
             "flash_message": flash_message,
