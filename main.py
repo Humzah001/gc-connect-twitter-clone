@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from urllib.parse import parse_qsl, quote, unquote, urlencode
 import google.oauth2.id_token
+import os
 import re
 import starlette.status as status
 from azure.storage.blob import (AccessPolicy, BlobServiceClient, ContainerSasPermissions, ContentSettings, PublicAccess,)
@@ -10,16 +11,24 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from google.auth.transport import requests as google_requests
 from bson import ObjectId
+from dotenv import load_dotenv
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
+load_dotenv()
 
 APP_TITLE = "GC Connect"
 APP_HOME = "/home"
 MONGO_DB = "A2-3181143"
 MAX_TWEET_LEN = 280
 
-uri = "MONGO_URI_REMOVED"
+uri = os.environ.get("MONGO_URI")
+
+if not uri:
+    raise RuntimeError(
+        "MONGO_URI is not set. Copy .env.example to .env and set your "
+        "MongoDB connection string, or export MONGO_URI before starting."
+    )
 
 client = MongoClient(uri, server_api=ServerApi("1"))
 
