@@ -67,9 +67,9 @@ retweet_collection = db["retweets"]
 
 AZURE_CONNECTION_STRING = (
     "DefaultEndpointsProtocol=http;"
-    "AccountName=devstoreaccount1;"
-    "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;"
-    "BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;"
+    "AccountName=YOUR-ACOUNTNAMW;"
+    "AccountKey=YOUR-KEY"
+    "BlobEndpoint=YOUR-ENDPOINT"
 )
 
 AZURE_CONTAINER_NAME = "3181143-images"
